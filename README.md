@@ -1,7 +1,21 @@
 # Generic Diffusion Feature
-We want this to be **both** the official implementation of NeurIPS'24 paper *Not All Diffusion Model Activations Have Been Evaluated as Discriminative Features* **and** a generic codebase for all who are interested in diffusion feature.
+We want this to be **both** the official implementation of NeurIPS'24 paper [Not All Diffusion Model Activations Have Been Evaluated as Discriminative Features](https://github.com/Darkbblue/generic-diffusion-feature) **and** a generic codebase for all who are interested in diffusion feature.
 
 ## Why you might be interested in this work
+Diffusion feature is a quite popular way to utilize **generative** diffusion models for **discrimination**.
+It's very simple: just extract some internal activations from a diffusion model, and then use these 2D features to replace image inputs of any discriminative model.  
+
+There have been quite many diffusion feature studies. But we notice that almost all of them experiment with Stable Diffusion v1.4, v1.5, v2.0, and v2.1 models. These models all share the same architecture and are really outdated today.
+So we wonder if a new model with a different architecture, such as Stable Diffusion XL, can bring better performance?
+The result is not good. **Although the model becomes stronger, the performance even drops a lot.**  
+![](figures/intro_performance.jpg)  
+![](figures/intro_activation.jpg)  
+
+Starting with this key observation, we discover that previous studies have only considered a limited part of all activations as feature candidates. This is why the conventional practice of feature extraction struggles to extend to new models.
+We further study the properties of these neglected activations and eventually arrive at a more thorough understanding of diffusion feature extraction.
+**Now, we are finally able to actually make the stronger Stable Diffusion XL model outperform its opponent.**  
+
+For more details, please check out our paper!  
 
 ## Why you should choose this codebase as baseline
 - This codebase can be installed as a package and directly called in your project. We also provide a standalone script to extract and store features if you prefer otherwise.
@@ -100,6 +114,7 @@ When initializing the feature extractor, you can pass the following arguments:
 - `feature_resize`: Setting this argument to >1 will compress the width and height of extracted features, for low memory/disk users.
 - `control`: Add ControlNet to the diffusion model. Check `feature/components/controlnet.py` for available options.
 - `attention`: Add aggregated attention score maps to feature extraction. We now support directly indicate score maps using `xxx-cross/self-map` in the layer param. This option is only kept here to be compatible with some previous codes.
+- `train_unet`: Set this as True to keep all features not detached from the computation graph, so that you can train the diffusion model with some downstream supervision. This requires very large VRAM.
 
 Below are the arguments of `extract()`:
 - `prompts`: Pass the output of `encode_prompt()` here.
