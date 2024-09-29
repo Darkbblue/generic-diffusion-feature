@@ -6,22 +6,22 @@ Diffusion feature is a quite popular way to utilize **generative** diffusion mod
 It's very simple: just extract some internal activations from a diffusion model, and then use these 2D features to replace image inputs of any discriminative model.  
 
 There have been quite many diffusion feature studies. But we notice that almost all of them experiment with Stable Diffusion v1.4, v1.5, v2.0, and v2.1 models. These models all share the same architecture and are really outdated today.
-So we wonder if a new model with a different architecture, such as Stable Diffusion XL, can bring better performance?
+So we wonder if a newer model with a different architecture, such as Stable Diffusion XL, can bring better performance?
 The result is not good. **Although the model becomes stronger, the performance even drops a lot.**  
 ![](figures/intro_performance.jpg)  
 ![](figures/intro_activation.jpg)  
 
 Starting with this key observation, we discover that previous studies have only considered a limited part of all activations as feature candidates. This is why the conventional practice of feature extraction struggles to extend to new models.
 We further study the properties of these neglected activations and eventually arrive at a more thorough understanding of diffusion feature extraction.
-**Now, we are finally able to actually make the stronger Stable Diffusion XL model outperform its opponent.**  
+**Now, we are finally able to make the stronger Stable Diffusion XL model actually outperform its opponent.**  
 
 For more details, please check out our paper!  
 
-## Why you should choose this codebase as baseline
-- This codebase can be installed as a package and directly called in your project. We also provide a standalone script to extract and store features if you prefer otherwise.
-- With this codebase, you have full control over every layer of interset in diffusion models. You can precisely control where and how features are extracted.
-- This codebase uses 🤗 Diffusers lib, which is more compatible, extensible, and easier to understand and edit, than the StabilityAI official repo of Stable Diffusion. You can easily add new models to this codebase, thanks to 🤗 Diffusers.
-- Previous diffusion segmentor baselines have been vastly using mmseg 1.x for segmentation tasks, which is incompatible with many other appealing packages that require pytorch 2.x. We have managed to update the codes to use mmseg 2.x.
+## Why you should choose this codebase as your baseline
+- **Direct integration into your project!** This codebase can be installed as a package and directly called in your project. We also provide a standalone script to extract and store features if you prefer otherwise.
+- **Precise control over feature extraction!** With this codebase, you have full control over every layer of interset in diffusion models. You can precisely control where and how features are extracted.
+- **Embrace Diffusers!** This codebase uses 🤗 Diffusers lib, which is more compatible, extensible, and easier to understand and edit, than the StabilityAI official repo of Stable Diffusion. You can easily add new models to this codebase, thanks to 🤗 Diffusers.
+- **Migration to mmseg 2.x!** Previous diffusion segmentor baselines have been vastly using mmseg 1.x for segmentation tasks, which is incompatible with many other appealing packages that require pytorch 2.x. We have managed to migrate to mmseg 2.x.
 
 ## Repo structure
 If you want to use this codebase in your project, you might want to pay attention to `extract_feature.py` and `feature/`. These are where the feature extractor is implemented.  
@@ -34,17 +34,20 @@ We also provide a handy visualization tool in `feature_visualization.py`.
 **Step 1**: install dependencies:
 (The following instructions are based on CUDA 11.8. You can change to your own environment.)
 ```bash
+# create a new environment
 conda create -n generic-diffusion-feature python=3.9
 conda activate generic-diffusion-feature
 
+# install cuda, skip this if you have it installed already
 conda install nvidia/label/cuda-11.8.0::cuda
 conda install nvidia/label/cuda-11.8.0::cuda-cudart
 conda install nvidia/label/cuda-11.8.0::libcusparse
 conda install nvidia/label/cuda-11.8.0::libcublas
 
+# install pytorch
 pip3 install torch==2.2.0 torchvision==0.17.0 torchaudio==2.2.0 --index-url https://download.pytorch.org/whl/cu118
 
-# install diffusers via pip, as conda diffusers are usually out-of-date a bit
+# install other packages
 pip3 install diffusers["torch"]==0.29.2 transformers controlnet_aux
 pip3 install tqdm tensorboard flake8 ipykernel pytest seaborn
 pip3 install xformers==0.0.24+cu118 --index-url https://download.pytorch.org/whl/cu118  # reduce memory usage
@@ -104,17 +107,18 @@ for k, v in features.items():
 ```
 
 When initializing the feature extractor, you can pass the following arguments:
-- `layer`: Where features should be extracted. We provide pre-defined layer configs in `feature/configs`.
-- `version`: What diffusion model should be used. Now we support Stable Diffusion v1.5 (1-5), Stable Diffusion v2.1 (2-1), Stable Diffusion XL (xl), Playground v2 (pgv2), and PixArt-Sigma (pixart-sigma).
-- `device`: On what device should the model be loaded.
-- `dtype`: Data type for diffusion models. We recommend float16 for most use cases.
-- `img_size`: All images will be resized to the given size before feeding into diffusion models. Usually each diffusion model is specially trained to work best on a given resolution.
-- **Above are common arguments. Following are advanced options.**
-- `offline_lora` and `offline_lora_filename` for loading LoRA weights. The first choice works when the LoRA weight has already been integrated into a whole model weight folder. The second choice will insert the LoRA weight into the model for you.
-- `feature_resize`: Setting this argument to >1 will compress the width and height of extracted features, for low memory/disk users.
-- `control`: Add ControlNet to the diffusion model. Check `feature/components/controlnet.py` for available options.
-- `attention`: Add aggregated attention score maps to feature extraction. We now support directly indicate score maps using `xxx-cross/self-map` in the layer param. This option is only kept here to be compatible with some previous codes.
-- `train_unet`: Set this as True to keep all features not detached from the computation graph, so that you can train the diffusion model with some downstream supervision. This requires very large VRAM.
+- Common arguments:
+    - `layer`: Where features should be extracted. We provide pre-defined layer configs in `feature/configs`.
+    - `version`: What diffusion model should be used. Now we support Stable Diffusion v1.5 (1-5), Stable Diffusion v2.1 (2-1), Stable Diffusion XL (xl), Playground v2 (pgv2), and PixArt-Sigma (pixart-sigma).
+    - `device`: On what device should the model be loaded.
+    - `dtype`: Data type for diffusion models. We recommend float16 for most use cases.
+    - `img_size`: All images will be resized to the given size before feeding into diffusion models. Usually each diffusion model is specially trained to work best on a given resolution.
+- Advanced arguments:
+    - `offline_lora` and `offline_lora_filename` for loading LoRA weights. The first choice works when the LoRA weight has already been integrated into a whole model weight folder. The second choice will insert the LoRA weight into the model for you.
+    - `feature_resize`: Setting this argument to >1 will compress the width and height of extracted features, for low memory/disk users.
+    - `control`: Add ControlNet to the diffusion model. Check `feature/components/controlnet.py` for available options.
+    - `attention`: Add aggregated attention score maps to feature extraction. We now support directly indicate score maps using `xxx-cross/self-map` in the layer param. This option is only kept here to be compatible with some previous codes.
+    - `train_unet`: Set this as True to keep all features not detached from the computation graph, so that you can train the diffusion model with some downstream supervision. This requires very large VRAM.
 
 Below are the arguments of `extract()`:
 - `prompts`: Pass the output of `encode_prompt()` here.
@@ -123,7 +127,7 @@ Below are the arguments of `extract()`:
 - `image_type`: We support PIL Images and pytorch Tensors.
 - `t`: At which timestep should features be extracted.
 - `use_control`: Set True if you are using ControlNet.
-- `use_ddim_inversion`: DDIM inversion means adding noises to the input image not by random sampling, but according to the output of a U-Net run. This improves performance but is slow. **Experimental**.
+- `use_ddim_inversion`: DDIM inversion means adding noises to the input image not by random sampling, but according to the output of a U-Net run. This improves performance a bit but is slow. **Experimental**. It's not used for the experiments in our paper.
 - `denoising_from`: *This is a deprecated function for compatibility*.
 
 ### Standalone script
@@ -147,7 +151,7 @@ Input:
 - `nested_input_dir` is for an image folder with many levels, such as how CityScapes dataset is organized.
 - `prompt_file` points to the file that contains your prompt.
 
-Output: `output_dir` indicates the output folder. `aggregate_output`, `use_original_filename`, and `sample_name_first` are options to toggle how outputs are organized. Their valid combinations are shown below. When `use_original_filename` is not set, you can use `split` to choose how files are named (train/test/val).
+Output: `output_dir` indicates the output folder. `aggregate_output`, `use_original_filename`, and `sample_name_first` are options to toggle how outputs are organized. Their valid combinations are shown below. When `use_original_filename` is not set, you can use `split` to indicate how files should be named.
 ![](figures/output_format.jpg)  
 
 **Don't know what layers a diffusion model contains?** Use `--show_all_layers` to print all layers and corresponding feature shapes. Note that turning on this option will cause the script not to store any feature.  

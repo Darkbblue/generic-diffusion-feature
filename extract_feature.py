@@ -36,7 +36,7 @@ def main():
     parser.add_argument('--output_dir', type=str, default='./output/')
     parser.add_argument('--aggregate_output', action='store_true')
     parser.add_argument('--use_original_filename', action='store_true')
-    parser.add_argument('--split', type=str, choices=['train', 'test', 'valid'], default='train')
+    parser.add_argument('--split', type=str, default='train')
     parser.add_argument('--sample_name_first', action='store_true')
     # debug purpose
     parser.add_argument('--show_all_layers', action='store_true')
