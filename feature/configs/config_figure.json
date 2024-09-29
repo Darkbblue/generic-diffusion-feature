@@ -1,0 +1,28 @@
+{
+	"down-level0-downsampler-out": true,
+	"down-level1-downsampler-out": true,
+	"down-level2-repeat1-vit-out": true,
+	"up-level0-upsampler-out": true,
+	"up-level1-upsampler-out": true,
+	"up-level2-repeat2-vit-out": true,
+
+	"down-level0-repeat0-res-out": true,
+	"down-level1-repeat0-vit-out": true,
+	"down-level2-repeat0-vit-out": true,
+	"up-level0-repeat1-vit-out": true,
+	"up-level1-repeat1-vit-out": true,
+	"up-level2-repeat1-res-out": true,
+	"mid-vit-out": true,
+
+	"up-level0-repeat1-vit-block0-out": true,
+	"up-level0-repeat1-vit-block2-out": true,
+	"up-level0-repeat1-vit-block4-out": true,
+	"up-level0-repeat1-vit-block6-out": true,
+	"up-level0-repeat1-vit-block8-out": true,
+
+	"up-level0-repeat1-vit-block0-self-k": true,
+	"up-level0-repeat1-vit-block2-self-k": true,
+	"up-level0-repeat1-vit-block4-self-k": true,
+	"up-level0-repeat1-vit-block6-self-k": true,
+	"up-level0-repeat1-vit-block8-self-k": true
+}

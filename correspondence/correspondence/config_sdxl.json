@@ -1,0 +1,8 @@
+{
+    "feature_len": 3840,
+    "layer": "../feature/configs/config_xl_practical.json",
+    "version": "xl",
+    "attention": null,
+    "img_size": 1024,
+    "t": 50
+}

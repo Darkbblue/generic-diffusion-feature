@@ -1,0 +1,11 @@
+{
+    "feature_len": 3034,
+    "layer": "../feature/configs/config_15_amalgamation.json",
+    "version": "1-5",
+    "attention":
+    [
+        "up_cross"
+    ],
+    "img_size": 512,
+    "t": 50
+}

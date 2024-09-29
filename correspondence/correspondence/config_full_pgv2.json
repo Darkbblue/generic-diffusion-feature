@@ -1,0 +1,8 @@
+{
+    "feature_len": 1280,
+    "layer": "../feature/configs/config_pg_amalgamation.json",
+    "version": "pgv2",
+    "attention": null,
+    "img_size": 1024,
+    "t": 50
+}
