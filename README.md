@@ -64,7 +64,7 @@ from PIL import Image
 
 # initialize a feature extractor
 df = diffusion_feature.FeatureExtractor(
-	layer={
+    layer={
         'up-level1-repeat1-vit-block0-cross-q': True,  # a feature within ViT
         'up-level2-repeat1-vit-block0-cross-map': True,  # an attention score map
         'up-level2-upsampler-out': True,  # a feature between two blocks, aka a conventional feature
@@ -86,7 +86,7 @@ features = df.extract(prompt, batch_size=1, image=[img])
 
 # check the results
 for k, v in features.items():
-	print(k, v.shape)
+    print(k, v.shape)
 ```
 
 When initializing the feature extractor, you can pass the following arguments:
@@ -115,6 +115,16 @@ Below are the arguments of `extract()`:
 We provide a standalone script, `extract_feature.py`, if you want to store features on disks and use them later.
 To use it, first create a file `prompt.txt` and write a prompt that can describe the images.  
 
+Simple example:
+```bash
+python3 extract_feature.py \
+    --layer ./feature/configs/config_15_practical.json \
+    --version 1-5 --img_size 512 \
+    --input_dir "/data/diffusion-feature/datasets/visualization/*" \
+    --batch_size 2 --t 50 \
+    --use_original_filename --sample_name_first
+```
+
 Most arguments have the same meaning as the integration usage. But this script has some additional IO arguments, as shown below.  
 
 Input:
@@ -125,7 +135,7 @@ Input:
 Output: `output_dir` indicates the output folder. `aggregate_output`, `use_original_filename`, and `sample_name_first` are options to toggle how outputs are organized. Their valid combinations are shown below. When `use_original_filename` is not set, you can use `split` to choose how files are named (train/test/val).
 ![](figures/output_format.jpg)  
 
-Don't know what layers a diffusion model contains? Use `--show_all_layers` to print all layers and corresponding feature shapes. Note that turning on this option will cause the script not to store any feature.  
+**Don't know what layers a diffusion model contains?** Use `--show_all_layers` to print all layers and corresponding feature shapes. Note that turning on this option will cause the script not to store any feature.  
 
 ### A useful feature visualization tool
 Do you want to make the same type of feature visualization as shown in our paper? Try `feature_visualization.py`! It's a simple script that perform PCA analysis to visualize any 2D features.  
