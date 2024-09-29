@@ -1,0 +1,8 @@
+{
+    "feature_len": 3520,
+    "layer": "../feature/configs/config_15_legacy.json",
+    "version": "1-5",
+    "attention": null,
+    "img_size": 512,
+    "t": 50
+}

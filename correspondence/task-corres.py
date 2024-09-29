@@ -236,7 +236,6 @@ if __name__ == "__main__":
     # parser.add_argument("--config_path", type=str, help="Path to yaml config file", default="configs/train.yaml")
     # model param
     parser.add_argument('--seed', type=int,  default=None)
-    # parser.add_argument('--batch_size', type=int, default=8)
     parser.add_argument('--max_epochs', type=int, default=2)
     parser.add_argument('--max_steps_per_epoch', type=int, default=5000)
     parser.add_argument('--lr', type=float, default=5e-4)

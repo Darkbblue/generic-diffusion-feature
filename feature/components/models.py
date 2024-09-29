@@ -67,7 +67,7 @@ def get_diffusion_model(version, dtype, offline_lora, offline_lora_filename):
                 print('retry connection')
     elif version == 'pixart-sigma':
         model_id = 'PixArt-alpha/PixArt-Sigma-XL-2-1024-MS'
-        # model_id = '/data/benyuan/diffusion-feature/models/PixArt-Sigma-512'
+        # model_id = '/data/benyuan/diffusion-feature/models/PixArt-Sigma'
         if offline_lora and not offline_lora_filename:
             model_id = offline_lora
         success = False

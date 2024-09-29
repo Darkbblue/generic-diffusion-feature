@@ -32,44 +32,18 @@ class AggregationNetwork(nn.Module):
             self.conv_device = device[0]
         self.feature_extractors = []
         for i, config in enumerate(configs):
-            if isinstance(config['t'], list):
-                t = []
-                for t_i in config['t']:
-                    t += [t_i[0]] * t_i[1]
-            else:
-                t = [config['t']]
-            if 'control' in config:
-                control = config['control'][0]
-                if config['control'][1] > 0:
-                    use_control = [True] * config['control'][1] + [False]
-                else:
-                    use_control = [True]
-            else:
-                control = None
-                use_control = [True]
-            if 'denoising_from' in config:
-                denoising_from = config['denoising_from']
-            else:
-                denoising_from = None
-            if 'offline_lora' in config:
-                offline_lora = config['offline_lora']
-            else:
-                offline_lora = None
+            t = config['t']
             feature_extractor = FeatureExtractor(
                 layer=config['layer'],
                 version=config['version'],
                 device=device if not self.load_model_to_different_gpu else device[i+1],
                 attention=config['attention'],
                 img_size=config['img_size'],
-                control=control,
-                offline_lora=offline_lora,
             )
             self.feature_extractors.append({
                 'model': feature_extractor,
                 'prompt_embeds': feature_extractor.encode_prompt(prompt),
                 't': t,
-                'use_control': use_control,
-                'denoising_from': denoising_from,
             })
             feature_extractor.offload_prompt_encoder(persistent=True)  # to save some vram
 
@@ -78,15 +52,12 @@ class AggregationNetwork(nn.Module):
         if not self.load_model_to_different_gpu:
             features = []
             for feature_extractor in self.feature_extractors:
-                t = feature_extractor['t'][0] if is_test else random.choice(feature_extractor['t'])
-                use_control = True if is_test else random.choice(feature_extractor['use_control'])
+                t = feature_extractor['t']
                 feat = feature_extractor['model'].extract(
                     prompts=feature_extractor['prompt_embeds'],
                     batch_size=1,
                     image=[Image.open(x)],
                     t=t,
-                    use_control=use_control,
-                    denoising_from=feature_extractor['denoising_from'],
                 )
                 for f in feat.values():
                     features.append(F.interpolate(

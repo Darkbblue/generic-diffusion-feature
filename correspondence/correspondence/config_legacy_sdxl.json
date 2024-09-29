@@ -1,0 +1,8 @@
+{
+    "feature_len": 2240,
+    "layer": "correspondence/layer_legacy_xl.json",
+    "version": "xl",
+    "attention": null,
+    "img_size": 1024,
+    "t": 50
+}

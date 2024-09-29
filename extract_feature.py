@@ -25,7 +25,7 @@ def main():
     parser.add_argument('--attention', type=str, nargs='+', default=None, choices=('down_cross', 'mid_cross', 'up_cross', 'down_self', 'mid_self', 'up_self'))
     parser.add_argument('--img_size', type=int, default=1024)  # 1024 for xl and 512 otherwise recommended
     # extraction settings
-    parser.add_argument('--batch_size', '-b', type=int, default=32)
+    parser.add_argument('--batch_size', '-b', type=int, default=2)
     parser.add_argument('--t', type=int, help='Timesteps to compute features')
     parser.add_argument('--denoising_from', type=int, default=None, help='perform multiple denoising from a given t')  # multiple denoising, used along with controlnet
     parser.add_argument('--use_ddim_inversion', action='store_true')
