@@ -122,7 +122,10 @@ def main():
                 for j in range(len(sublist)):
                     feat = aggregated_feat[j]
                     name = target_dataset[i+j][2] if args.use_original_filename else args.split+str(i+j)
-                    os.makedirs(args.output_dir, exist_ok=True)
+                    if not args.nested_input_dir:
+                        os.makedirs(args.output_dir, exist_ok=True)
+                    else:
+                        os.makedirs(os.path.join(args.output_dir, name.split('/')[0]), exist_ok=True)
                     np.save(os.path.join(args.output_dir, name), feat)
 
             else:

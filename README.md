@@ -148,7 +148,7 @@ Most arguments have the same meaning as the integration usage. But this script h
 
 Input:
 - `input_dir` should point to the images. We support glob style paths, such as `some/path/*.png`, so that jpg files will be ignored.
-- `nested_input_dir` is for an image folder with many levels, such as how CityScapes dataset is organized.
+- `nested_input_dir` is for an image folder with many levels, such as how CityScapes dataset is organized. (Recommended using along with `aggregate_output`.)
 - `prompt_file` points to the file that contains your prompt.
 
 Output: `output_dir` indicates the output folder. `aggregate_output`, `use_original_filename`, and `sample_name_first` are options to toggle how outputs are organized. Their valid combinations are shown below. When `use_original_filename` is not set, you can use `split` to indicate how files should be named.
