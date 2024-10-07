@@ -1,5 +1,5 @@
 # Generic Diffusion Feature
-We want this to be **both** the official implementation of NeurIPS'24 paper [Not All Diffusion Model Activations Have Been Evaluated as Discriminative Features](https://github.com/Darkbblue/generic-diffusion-feature) **and** a generic codebase for all who are interested in diffusion feature.
+We want this to be **both** the official implementation of NeurIPS'24 paper [Not All Diffusion Model Activations Have Been Evaluated as Discriminative Features](https://arxiv.org/abs/2410.03558) **and** a generic codebase for all who are interested in diffusion feature.
 
 ## Why you might be interested in this work
 Diffusion feature is a quite popular way to utilize **generative** diffusion models for **discrimination**.
@@ -160,3 +160,14 @@ Output: `output_dir` indicates the output folder. `aggregate_output`, `use_origi
 Do you want to make the same type of feature visualization as shown in our paper? Try `feature_visualization.py`! It's a simple script that perform PCA analysis to visualize any 2D features.  
 
 ## Citation
+```text
+@misc{meng2024diffusionmodelactivationsevaluated,
+      title={Not All Diffusion Model Activations Have Been Evaluated as Discriminative Features}, 
+      author={Benyuan Meng and Qianqian Xu and Zitai Wang and Xiaochun Cao and Qingming Huang},
+      year={2024},
+      eprint={2410.03558},
+      archivePrefix={arXiv},
+      primaryClass={cs.CV},
+      url={https://arxiv.org/abs/2410.03558}, 
+}
+```
