@@ -1,5 +1,5 @@
 # Generic Diffusion Feature
-We want this to be **both** the official implementation of NeurIPS'24 paper [Not All Diffusion Model Activations Have Been Evaluated as Discriminative Features](https://arxiv.org/abs/2410.03558) **and** a generic codebase for all who are interested in diffusion feature.
+We want this to be **both** the official implementation of NeurIPS'24 Spotlight paper [Not All Diffusion Model Activations Have Been Evaluated as Discriminative Features](https://arxiv.org/abs/2410.03558) **and** a generic codebase for all who are interested in diffusion feature.
 
 ## Why you might be interested in this work
 Diffusion feature is a quite popular way to utilize **generative** diffusion models for **discrimination**.
