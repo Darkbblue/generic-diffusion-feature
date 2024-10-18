@@ -108,7 +108,7 @@ for k, v in features.items():
 
 When initializing the feature extractor, you can pass the following arguments:
 - Common arguments:
-    - `layer`: Where features should be extracted. We provide pre-defined layer configs in `feature/configs`. `config_15_practical.json` and `config_xl_practical.json` are the two recommended feature choices.
+    - `layer`: Where features should be extracted. We provide pre-defined layer configs in `feature/configs`. `config_15_practical.json` and `config_xl_practical.json` are the two recommended feature choices. **All legal layer ids can be printed using the standalone script's `show_all_layers` flag.**
     - `version`: What diffusion model should be used. Now we support Stable Diffusion v1.5 (1-5), Stable Diffusion v2.1 (2-1), Stable Diffusion XL (xl), Playground v2 (pgv2), and PixArt-Sigma (pixart-sigma).
     - `device`: On what device should the model be loaded.
     - `dtype`: Data type for diffusion models. We recommend float16 for most use cases.
