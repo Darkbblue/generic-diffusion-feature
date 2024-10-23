@@ -49,7 +49,7 @@ pip3 install torch==2.2.0 torchvision==0.17.0 torchaudio==2.2.0 --index-url http
 
 # install other packages
 pip3 install diffusers["torch"]==0.29.2 transformers controlnet_aux
-pip3 install tqdm tensorboard flake8 ipykernel pytest seaborn
+pip3 install tqdm tensorboard flake8 ipykernel pytest seaborn sentencepiece beautifulsoup4
 pip3 install xformers==0.0.24+cu118 --index-url https://download.pytorch.org/whl/cu118  # reduce memory usage
 pip3 install accelerate ipdb pytest-env wandb
 pip3 install invisible-watermark>=0.2.0  # remove >=0.2.0 if pip can't find anything
