@@ -1,4 +1,5 @@
 import os
+import json
 import tqdm
 import glob
 import torch
@@ -99,8 +100,12 @@ def main():
 
             # debug mode: show all possible layers
             if args.show_all_layers:
+                layer_record = {}
                 for k, v in features.items():
                     print(k, v[0].shape)
+                    layer_record[k] = True
+                with open('layer_record.json', 'w') as f:
+                    f.write(json.dumps(layer_record))
                 exit()
 
             # save the results

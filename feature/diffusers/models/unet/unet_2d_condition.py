@@ -1159,7 +1159,11 @@ class UNet2DConditionModel(
         )
 
         # 2. pre-process
+        if hasattr(self, 'feature_gatherer'):
+            self.feature_gatherer.gather(sample, 'in')
         sample = self.conv_in(sample)
+        if hasattr(self, 'feature_gatherer'):
+            self.feature_gatherer.gather(sample, 'after-conv-in')
 
         # 2.5 GLIGEN position net
         if cross_attention_kwargs is not None and cross_attention_kwargs.get("gligen", None) is not None:

@@ -368,6 +368,9 @@ class ResnetBlock2D(nn.Module):
         if self.conv_shortcut is not None:
             input_tensor = self.conv_shortcut(input_tensor)
 
+        if hasattr(self, 'feature_gatherer'):
+            self.feature_gatherer.gather(hidden_states, 'increment')
+
         output_tensor = (input_tensor + hidden_states) / self.output_scale_factor
 
         if hasattr(self, 'feature_gatherer'):

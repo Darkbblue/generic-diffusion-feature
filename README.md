@@ -154,7 +154,7 @@ Input:
 Output: `output_dir` indicates the output folder. `aggregate_output`, `use_original_filename`, and `sample_name_first` are options to toggle how outputs are organized. Their valid combinations are shown below. When `use_original_filename` is not set, you can use `split` to indicate how files should be named.
 ![](figures/output_format.jpg)  
 
-**Don't know what layers a diffusion model contains?** Use `--show_all_layers` to print all layers and corresponding feature shapes. Note that turning on this option will cause the script not to store any feature.  
+**Don't know what layers a diffusion model contains?** Use `--show_all_layers` to print all layers and corresponding feature shapes. A corresponding config file will also be generated at the root directory. Note that turning on this option will cause the script not to store any feature.  
 
 ### A useful feature visualization tool
 Do you want to make the same type of feature visualization as shown in our paper? Try `feature_visualization.py`! It's a simple script that perform PCA analysis to visualize any 2D features.  
