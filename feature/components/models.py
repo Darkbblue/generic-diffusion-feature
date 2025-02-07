@@ -81,6 +81,22 @@ def get_diffusion_model(version, dtype, offline_lora, offline_lora_filename):
                 success = True
             except requests.exceptions.ConnectionError:
                 print('retry connection')
+    elif version == 'pixart-sigma-512':
+        model_id = 'PixArt-alpha/PixArt-Sigma-XL-2-512-MS'
+        # model_id = '/data/benyuan/diffusion-feature/models/PixArt-Sigma-512'
+        if offline_lora and not offline_lora_filename:
+            model_id = offline_lora
+        success = False
+        while not success:
+            try:
+                pipe = PixArtSigmaPipeline.from_pretrained(
+                    model_id, torch_dtype=dtype, variant="fp16", use_safetensors=True,
+                    requires_safety_checker=False
+                )
+                pipe.unet = pipe.transformer
+                success = True
+            except requests.exceptions.ConnectionError:
+                print('retry connection')
     else:
         raise NotImplementedError
     return pipe
