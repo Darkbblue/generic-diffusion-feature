@@ -17,6 +17,7 @@ class FeatureStore:
         self.status = 'active'
         self.resize_ratio = resize_ratio
         self.train_unet = train_unet
+        self.store_idx = None
 
     def pause(self):
         self.status = 'pause'
@@ -59,7 +60,16 @@ class FeatureStore:
                 feat = feat.detach()
             if self.accept_all:
                 feat = feat.cpu()
-            self.feats[feat_id] = feat
+
+            if self.store_idx is None:
+                self.feats[feat_id] = feat
+            else:
+                entry = self.feats[feat_id] if feat_id in self.feats else {'feat': {}, 'count': 0}
+                current_idx = entry['count'] + 1
+                if current_idx in self.store_idx:
+                    entry['feat'][current_idx] = feat
+                entry['count'] = current_idx
+                self.feats[feat_id] = entry
 
     @property
     def stored_feats(self):

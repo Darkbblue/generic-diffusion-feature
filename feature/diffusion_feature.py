@@ -36,18 +36,22 @@ class FeatureExtractor(nn.Module):
             control=None,
             attention=None,
             train_unet=False,
+            external_model=None,
         ):
         super(FeatureExtractor, self).__init__()
 
         # 0. load pretrained models
         # do this first because this code will use diffusers built-in functions as much as possible
         # and self-implemented codes as little as possible
-        pipe = get_diffusion_model(version, dtype, offline_lora, offline_lora_filename)
-        if offline_lora:
-            if offline_lora_filename:
-                pipe.load_lora_weights(offline_lora, weight_name=offline_lora_filename)
-            # else: TODO
-        pipe = pipe.to(device)
+        if external_model:
+            pipe = external_model
+        else:
+            pipe = get_diffusion_model(version, dtype, offline_lora, offline_lora_filename)
+            if offline_lora:
+                if offline_lora_filename:
+                    pipe.load_lora_weights(offline_lora, weight_name=offline_lora_filename)
+                # else: TODO
+            pipe = pipe.to(device)
         # torch.backends.cudnn.benchmark = True
 
         # customize the model
@@ -477,6 +481,16 @@ class FeatureExtractor(nn.Module):
         # exit()
 
         return self.feature_store.stored_feats
+
+
+    def set_background_extraction(self, idxs):
+        self.feature_store.store_idx = idxs
+
+    def get_background_extraction(self):
+        to_return = {}
+        for k, v in self.feature_store.feats.items():
+            to_return[k] = v['feat']
+        return to_return
 
 # -------------------------------------------------------------------------------------------------- #
 

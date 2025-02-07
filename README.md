@@ -156,6 +156,11 @@ Output: `output_dir` indicates the output folder. `aggregate_output`, `use_origi
 
 **Don't know what layers a diffusion model contains?** Use `--show_all_layers` to print all layers and corresponding feature shapes. A corresponding config file will also be generated at the root directory. Note that turning on this option will cause the script not to store any feature.  
 
+### Background Extraction
+Now we support a new feature: you can extract features in the background while doing other staff like generating an image. This allows you to do feature extraction in the t2i generation pipeline.  
+
+See `generate_with_extraction.py` for an example.  
+
 ### A useful feature visualization tool
 Do you want to make the same type of feature visualization as shown in our paper? Try `feature_visualization.py`! It's a simple script that perform PCA analysis to visualize any 2D features.  
 
