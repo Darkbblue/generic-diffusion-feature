@@ -176,6 +176,6 @@ Do you want to make the same type of feature visualization as shown in our paper
                   Features},
   booktitle    = {Annual Conference on Neural Information Processing Systems},
   year         = {2024},
-  pages        = {55141-55177},
+  pages        = {55141--55177},
 }
 ```
