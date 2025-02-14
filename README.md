@@ -166,13 +166,16 @@ Do you want to make the same type of feature visualization as shown in our paper
 
 ## Citation
 ```text
-@misc{meng2024diffusionmodelactivationsevaluated,
-      title={Not All Diffusion Model Activations Have Been Evaluated as Discriminative Features}, 
-      author={Benyuan Meng and Qianqian Xu and Zitai Wang and Xiaochun Cao and Qingming Huang},
-      year={2024},
-      eprint={2410.03558},
-      archivePrefix={arXiv},
-      primaryClass={cs.CV},
-      url={https://arxiv.org/abs/2410.03558}, 
+@inproceedings{meng2024diffusionmodelactivationsevaluated,
+  author       = {Benyuan Meng and
+                  Qianqian Xu and
+                  Zitai Wang and
+                  Xiaochun Cao and
+                  Qingming Huang},
+  title        = {Not All Diffusion Model Activations Have Been Evaluated as Discriminative
+                  Features},
+  booktitle    = {Annual Conference on Neural Information Processing Systems},
+  year         = {2024},
+  pages        = {55141-55177},
 }
 ```

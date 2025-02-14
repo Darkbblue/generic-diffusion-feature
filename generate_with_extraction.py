@@ -12,8 +12,8 @@ from diffusers import StableDiffusionPipeline
 
 
 # load pipeline normally
-# model_id = "sd-legacy/stable-diffusion-v1-5"
-model_id = '/data/benyuan/diffusion-feature/models/SD-1-5'
+model_id = "sd-legacy/stable-diffusion-v1-5"
+# model_id = '/data/benyuan/diffusion-feature/models/SD-1-5'
 pipe = StableDiffusionPipeline.from_pretrained(model_id, torch_dtype=torch.float16)
 pipe = pipe.to("cuda")
 

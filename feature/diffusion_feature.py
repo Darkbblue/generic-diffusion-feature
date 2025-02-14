@@ -179,13 +179,13 @@ class FeatureExtractor(nn.Module):
                     pooled_prompt_embeds,  # batch_size x 1280
                     negative_pooled_prompt_embeds,  # batch_size x 1280
                 ) = prompt_return
-            elif self.version == '2-1' or self.version == '1-5':
+            elif self.version == '2-1' or self.version == '1-5' or self.version == 'if':
                 (
                     prompt_embeds,  # batch_size x seq_len x 1280
                     negative_prompt_embeds,  # batch_size x seq_len x 1280
                 ) = prompt_return
                 pooled_prompt_embeds, negative_pooled_prompt_embeds = None, None
-            elif self.version == 'pixart-sigma':
+            elif self.version == 'pixart-sigma' or self.version == 'pixart-alpha':
                 (
                     prompt_embeds,
                     prompt_attention_mask,
@@ -236,7 +236,7 @@ class FeatureExtractor(nn.Module):
         device = self.device
 
         do_classifier_free_guidance = False
-        if self.version != 'pixart-sigma':
+        if self.version not in ['pixart-sigma', 'pixart-alpha']:
             (
                 prompt_embeds, negative_prompt_embeds,
                 pooled_prompt_embeds, negative_pooled_prompt_embeds,
@@ -419,7 +419,7 @@ class FeatureExtractor(nn.Module):
                 mid_block_additional_residual=mid,
                 return_dict=False,
             )[0]
-        elif self.version == '1-5' or self.version == '2-1':
+        elif self.version == '1-5' or self.version == '2-1' or self.version == 'if':
             noise_pred = self.pipe.unet(
                 latent_model_input,
                 timestep=t,

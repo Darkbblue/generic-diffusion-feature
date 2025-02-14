@@ -1,7 +1,8 @@
 import os
 import torch
 import requests
-from diffusers import StableDiffusionImg2ImgPipeline, StableDiffusionXLImg2ImgPipeline, EulerDiscreteScheduler, PixArtSigmaPipeline
+from diffusers import StableDiffusionImg2ImgPipeline, StableDiffusionXLImg2ImgPipeline, EulerDiscreteScheduler
+from diffusers import PixArtSigmaPipeline, PixArtAlphaPipeline, DiffusionPipeline
 
 
 def get_diffusion_model(version, dtype, offline_lora, offline_lora_filename):
@@ -94,6 +95,37 @@ def get_diffusion_model(version, dtype, offline_lora, offline_lora_filename):
                     requires_safety_checker=False
                 )
                 pipe.unet = pipe.transformer
+                success = True
+            except requests.exceptions.ConnectionError:
+                print('retry connection')
+    elif version == 'pixart-alpha':
+        model_id = 'PixArt-alpha/PixArt-XL-2-512x512'
+        # model_id = '/data/benyuan/diffusion-feature/models/PixArt-Alpha'
+        if offline_lora and not offline_lora_filename:
+            model_id = offline_lora
+        success = False
+        while not success:
+            try:
+                pipe = PixArtAlphaPipeline.from_pretrained(
+                    model_id, torch_dtype=dtype, variant="fp16", use_safetensors=True,
+                    requires_safety_checker=False
+                )
+                pipe.unet = pipe.transformer
+                success = True
+            except requests.exceptions.ConnectionError:
+                print('retry connection')
+    elif version == 'if':
+        model_id = 'DeepFloyd/IF-I-L-v1.0'
+        # model_id = '/data/benyuan/diffusion-feature/models/IF-I-L-v1.0'
+        if offline_lora and not offline_lora_filename:
+            model_id = offline_lora
+        success = False
+        while not success:
+            try:
+                pipe = DiffusionPipeline.from_pretrained(
+                    model_id, torch_dtype=dtype, variant="fp16", use_safetensors=True,
+                    requires_safety_checker=False
+                )
                 success = True
             except requests.exceptions.ConnectionError:
                 print('retry connection')
