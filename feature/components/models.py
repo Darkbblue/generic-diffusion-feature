@@ -2,7 +2,7 @@ import os
 import torch
 import requests
 from diffusers import StableDiffusionImg2ImgPipeline, StableDiffusionXLImg2ImgPipeline, EulerDiscreteScheduler
-from diffusers import PixArtSigmaPipeline, PixArtAlphaPipeline, DiffusionPipeline
+from diffusers import PixArtSigmaPipeline, PixArtAlphaPipeline, IFImg2ImgPipeline
 
 
 def get_diffusion_model(version, dtype, offline_lora, offline_lora_filename):
@@ -122,7 +122,7 @@ def get_diffusion_model(version, dtype, offline_lora, offline_lora_filename):
         success = False
         while not success:
             try:
-                pipe = DiffusionPipeline.from_pretrained(
+                pipe = IFImg2ImgPipeline.from_pretrained(
                     model_id, torch_dtype=dtype, variant="fp16", use_safetensors=True,
                     requires_safety_checker=False
                 )

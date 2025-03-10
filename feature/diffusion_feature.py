@@ -95,7 +95,10 @@ class FeatureExtractor(nn.Module):
         self.attention = attention
 
         # disable all grads
-        to_disable = [self.pipe.vae, self.pipe.text_encoder]
+        if not self.version == 'if':
+            to_disable = [self.pipe.vae, self.pipe.text_encoder]
+        else:
+            to_disable = [self.pipe.text_encoder]
         if not train_unet:
             to_disable.append(self.pipe.unet)
         if version in ['xl', 'pgv2']:
@@ -126,7 +129,10 @@ class FeatureExtractor(nn.Module):
         # get image preprocessing function from pipeline
         def preprocess_pipe(x):
             # don't use crop.
-            return self.pipe.image_processor.preprocess(x)
+            if not self.version == 'if':
+                return self.pipe.image_processor.preprocess(x)
+            else:
+                return self.pipe.preprocess_image(x)
         if not is_tensor:
             return preprocess_pipe(self._preprocess_basic(x))        
         else:
@@ -341,9 +347,15 @@ class FeatureExtractor(nn.Module):
         # 7. encode input image with vae, also using a pipeline method
         # this function also adds noise so we don't need to do it manually
         if not use_ddim_inversion:
-            latents = self.pipe.prepare_latents(
-                image, latent_timestep, 1, batch_size, prompt_embeds.dtype, device
-            )  # batch_size x c (4) x h x w (input image size / 8)
+            if not self.version == 'if':
+                latents = self.pipe.prepare_latents(
+                    image, latent_timestep, 1, batch_size, prompt_embeds.dtype, device
+                )  # batch_size x c (4) x h x w (input image size / 8)
+            else:
+                latents = self.pipe.prepare_intermediate_images(
+                    image.to(device=device, dtype=prompt_embeds.dtype),
+                    latent_timestep, 1, batch_size, prompt_embeds.dtype, device
+                )
         else:
             # alternatively, we also support inversing the input image with DDIM inversion
             # but it takes roughly twice the time per image

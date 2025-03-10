@@ -106,23 +106,31 @@ def prepare_feature_extractor(pipe, config, resize_ratio, train_unet):
                     block_id = '-'.join([stage_name, f'level{level_name}', f'repeat{repeat_name}', 'vit'])
                     # print('\t\t', block_id)
                     level.attentions[repeat].feature_gatherer = FeatureGatherer(block_id, feature_store)
-                    for i, basic_block in enumerate(level.attentions[repeat].transformer_blocks):
+                    if hasattr(level.attentions[repeat], 'transformer_blocks'):
+                        for i, basic_block in enumerate(level.attentions[repeat].transformer_blocks):
+                            # basic block
+                            block_id = '-'.join([stage_name, f'level{level_name}', f'repeat{repeat_name}', 'vit', f'block{i}'])
+                            # print('\t\t\t', block_id)
+                            basic_block.feature_gatherer = FeatureGatherer(block_id, feature_store)
+                            # self-attention
+                            block_id = '-'.join([stage_name, f'level{level_name}', f'repeat{repeat_name}', 'vit', f'block{i}', 'self'])
+                            # print('\t\t\t', block_id)
+                            basic_block.attn1.feature_gatherer = FeatureGatherer(block_id, feature_store)
+                            # cross-attention
+                            block_id = '-'.join([stage_name, f'level{level_name}', f'repeat{repeat_name}', 'vit', f'block{i}', 'cross'])
+                            # print('\t\t\t', block_id)
+                            basic_block.attn2.feature_gatherer = FeatureGatherer(block_id, feature_store)
+                            # ffn
+                            block_id = '-'.join([stage_name, f'level{level_name}', f'repeat{repeat_name}', 'vit', f'block{i}', 'ffn'])
+                            # print('\t\t\t', block_id)
+                            basic_block.ff.feature_gatherer = FeatureGatherer(block_id, feature_store)
+                    else:
+                        i = 0
+                        basic_block = level.attentions[repeat]
                         # basic block
-                        block_id = '-'.join([stage_name, f'level{level_name}', f'repeat{repeat_name}', 'vit', f'block{i}'])
-                        # print('\t\t\t', block_id)
-                        basic_block.feature_gatherer = FeatureGatherer(block_id, feature_store)
-                        # self-attention
-                        block_id = '-'.join([stage_name, f'level{level_name}', f'repeat{repeat_name}', 'vit', f'block{i}', 'self'])
-                        # print('\t\t\t', block_id)
-                        basic_block.attn1.feature_gatherer = FeatureGatherer(block_id, feature_store)
-                        # cross-attention
                         block_id = '-'.join([stage_name, f'level{level_name}', f'repeat{repeat_name}', 'vit', f'block{i}', 'cross'])
                         # print('\t\t\t', block_id)
-                        basic_block.attn2.feature_gatherer = FeatureGatherer(block_id, feature_store)
-                        # ffn
-                        block_id = '-'.join([stage_name, f'level{level_name}', f'repeat{repeat_name}', 'vit', f'block{i}', 'ffn'])
-                        # print('\t\t\t', block_id)
-                        basic_block.ff.feature_gatherer = FeatureGatherer(block_id, feature_store)
+                        basic_block.feature_gatherer = FeatureGatherer(block_id, feature_store)
             if level.downsamplers:
                 for downsampler in level.downsamplers:
                     block_id = '-'.join([stage_name, f'level{level_name}', 'downsampler'])
@@ -140,23 +148,31 @@ def prepare_feature_extractor(pipe, config, resize_ratio, train_unet):
             block_id = '-'.join([stage_name, 'vit'])
             # print('\t\t', block_id)
             level.attentions[0].feature_gatherer = FeatureGatherer(block_id, feature_store)
-            for i, basic_block in enumerate(level.attentions[0].transformer_blocks):
+            if hasattr(level.attentions[0], 'transformer_blocks'):
+                for i, basic_block in enumerate(level.attentions[0].transformer_blocks):
+                    # basic block
+                    block_id = '-'.join([stage_name, 'vit', f'block{i}'])
+                    # print('\t\t\t', block_id)
+                    basic_block.feature_gatherer = FeatureGatherer(block_id, feature_store)
+                    # self-attention
+                    block_id = '-'.join([stage_name, 'vit', f'block{i}', 'self'])
+                    # print('\t\t\t', block_id)
+                    basic_block.attn1.feature_gatherer = FeatureGatherer(block_id, feature_store)
+                    # cross-attention
+                    block_id = '-'.join([stage_name, 'vit', f'block{i}', 'cross'])
+                    # print('\t\t\t', block_id)
+                    basic_block.attn2.feature_gatherer = FeatureGatherer(block_id, feature_store)
+                    # ffn
+                    block_id = '-'.join([stage_name, 'vit', f'block{i}', 'ffn'])
+                    # print('\t\t\t', block_id)
+                    basic_block.ff.feature_gatherer = FeatureGatherer(block_id, feature_store)
+            else:
+                i = 0
+                basic_block = level.attentions[0]
                 # basic block
-                block_id = '-'.join([stage_name, 'vit', f'block{i}'])
-                # print('\t\t\t', block_id)
-                basic_block.feature_gatherer = FeatureGatherer(block_id, feature_store)
-                # self-attention
-                block_id = '-'.join([stage_name, 'vit', f'block{i}', 'self'])
-                # print('\t\t\t', block_id)
-                basic_block.attn1.feature_gatherer = FeatureGatherer(block_id, feature_store)
-                # cross-attention
                 block_id = '-'.join([stage_name, 'vit', f'block{i}', 'cross'])
                 # print('\t\t\t', block_id)
-                basic_block.attn2.feature_gatherer = FeatureGatherer(block_id, feature_store)
-                # ffn
-                block_id = '-'.join([stage_name, 'vit', f'block{i}', 'ffn'])
-                # print('\t\t\t', block_id)
-                basic_block.ff.feature_gatherer = FeatureGatherer(block_id, feature_store)
+                basic_block.feature_gatherer = FeatureGatherer(block_id, feature_store)
         
         # print('up')
         stage_name = 'up'
@@ -170,23 +186,31 @@ def prepare_feature_extractor(pipe, config, resize_ratio, train_unet):
                     block_id = '-'.join([stage_name, f'level{level_name}', f'repeat{repeat_name}', 'vit'])
                     # print('\t\t', block_id)
                     level.attentions[repeat].feature_gatherer = FeatureGatherer(block_id, feature_store)
-                    for i, basic_block in enumerate(level.attentions[repeat].transformer_blocks):
+                    if hasattr(level.attentions[repeat], 'transformer_blocks'):
+                        for i, basic_block in enumerate(level.attentions[repeat].transformer_blocks):
+                            # basic block
+                            block_id = '-'.join([stage_name, f'level{level_name}', f'repeat{repeat_name}', 'vit', f'block{i}'])
+                            # print('\t\t\t', block_id)
+                            basic_block.feature_gatherer = FeatureGatherer(block_id, feature_store)
+                            # self-attention
+                            block_id = '-'.join([stage_name, f'level{level_name}', f'repeat{repeat_name}', 'vit', f'block{i}', 'self'])
+                            # print('\t\t\t', block_id)
+                            basic_block.attn1.feature_gatherer = FeatureGatherer(block_id, feature_store)
+                            # cross-attention
+                            block_id = '-'.join([stage_name, f'level{level_name}', f'repeat{repeat_name}', 'vit', f'block{i}', 'cross'])
+                            # print('\t\t\t', block_id)
+                            basic_block.attn2.feature_gatherer = FeatureGatherer(block_id, feature_store)
+                            # ffn
+                            block_id = '-'.join([stage_name, f'level{level_name}', f'repeat{repeat_name}', 'vit', f'block{i}', 'ffn'])
+                            # print('\t\t\t', block_id)
+                            basic_block.ff.feature_gatherer = FeatureGatherer(block_id, feature_store)
+                    else:
+                        i = 0
+                        basic_block = level.attentions[repeat]
                         # basic block
-                        block_id = '-'.join([stage_name, f'level{level_name}', f'repeat{repeat_name}', 'vit', f'block{i}'])
-                        # print('\t\t\t', block_id)
-                        basic_block.feature_gatherer = FeatureGatherer(block_id, feature_store)
-                        # self-attention
-                        block_id = '-'.join([stage_name, f'level{level_name}', f'repeat{repeat_name}', 'vit', f'block{i}', 'self'])
-                        # print('\t\t\t', block_id)
-                        basic_block.attn1.feature_gatherer = FeatureGatherer(block_id, feature_store)
-                        # cross-attention
                         block_id = '-'.join([stage_name, f'level{level_name}', f'repeat{repeat_name}', 'vit', f'block{i}', 'cross'])
                         # print('\t\t\t', block_id)
-                        basic_block.attn2.feature_gatherer = FeatureGatherer(block_id, feature_store)
-                        # ffn
-                        block_id = '-'.join([stage_name, f'level{level_name}', f'repeat{repeat_name}', 'vit', f'block{i}', 'ffn'])
-                        # print('\t\t\t', block_id)
-                        basic_block.ff.feature_gatherer = FeatureGatherer(block_id, feature_store)
+                        basic_block.feature_gatherer = FeatureGatherer(block_id, feature_store)
             if level.upsamplers:
                 for upsampler in level.upsamplers:
                     # print('\t\t', type(upsampler))

@@ -16,7 +16,7 @@ def main():
 
     # same settings as the diffusion feature package
     parser.add_argument('--layer', type=str, help="which layer's output to be used as features")
-    parser.add_argument('--version', type=str, default='xl', choices=('1-5', '2-1', 'xl', 'pgv2', 'pixart-sigma'), help='Stable Diffusion model version')
+    parser.add_argument('--version', type=str, default='xl', help='Stable Diffusion model version')
     parser.add_argument('--dtype', type=str, default='float16', choices=('float16', 'float32'),
                         help='Model data type to use')
     parser.add_argument('--offline_lora', type=str, default=None, help='path for pretrained lora weights')  # lora
