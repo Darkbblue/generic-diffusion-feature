@@ -2,6 +2,8 @@ import abc
 import math
 import torch
 import numpy as np
+import torch.nn.functional as F
+
 from PIL import Image
 from einops import rearrange
 from typing import Callable, Optional, Union
@@ -260,10 +262,153 @@ class AttnStoreProcessor:
 
         return hidden_states
 
+def my_scaled_dot_product_attention(
+    query, key, value, attn_mask=None, dropout_p=0.0,
+    is_causal=False, scale=None, enable_gqa=False
+):
+    L, S = query.size(-2), key.size(-2)
+    scale_factor = 1 / math.sqrt(query.size(-1)) if scale is None else scale
+    attn_bias = torch.zeros(L, S, dtype=query.dtype, device=query.device)
+    if is_causal:
+        assert attn_mask is None
+        temp_mask = torch.ones(L, S, dtype=torch.bool).tril(diagonal=0)
+        attn_bias.masked_fill_(temp_mask.logical_not(), float("-inf"))
+        attn_bias.to(query.dtype)
+
+    if attn_mask is not None:
+        if attn_mask.dtype == torch.bool:
+            attn_bias.masked_fill_(attn_mask.logical_not(), float("-inf"))
+        else:
+            attn_bias = attn_mask + attn_bias
+
+    if enable_gqa:
+        key = key.repeat_interleave(query.size(-3)//key.size(-3), -3)
+        value = value.repeat_interleave(query.size(-3)//value.size(-3), -3)
+
+    attn_weight = query @ key.transpose(-2, -1) * scale_factor
+    attn_weight += attn_bias
+    attn_weight = torch.softmax(attn_weight, dim=-1)
+    attn_weight = torch.dropout(attn_weight, dropout_p, train=True)
+    return attn_weight @ value, attn_weight
+
+class HunyuanAttnStoreProcessor:
+    '''a custom attention processor, replacing the default one in the pipeline,
+    so that we can store the inner attention maps during forward call'''
+    def __init__(self, attnstore, place_in_unet):
+        super().__init__()
+        self.attnstore = attnstore
+        self.place_in_unet = place_in_unet
+
+    # but the call func is copied from attention_processor.py's AttnProcessor
+    # and it's suggested you update it to your diffusers version accordingly
+    # there are two modifications and they are specially marked with "MODIFY"
+    def __call__(
+        self,
+        attn: Attention,
+        hidden_states: torch.Tensor,
+        encoder_hidden_states: Optional[torch.Tensor] = None,
+        attention_mask: Optional[torch.Tensor] = None,
+        temb: Optional[torch.Tensor] = None,
+        image_rotary_emb: Optional[torch.Tensor] = None,
+    ) -> torch.Tensor:
+        from diffusers.models.embeddings import apply_rotary_emb
+
+        residual = hidden_states
+        if attn.spatial_norm is not None:
+            hidden_states = attn.spatial_norm(hidden_states, temb)
+
+        input_ndim = hidden_states.ndim
+
+        if input_ndim == 4:
+            batch_size, channel, height, width = hidden_states.shape
+            hidden_states = hidden_states.view(batch_size, channel, height * width).transpose(1, 2)
+
+        batch_size, sequence_length, _ = (
+            hidden_states.shape if encoder_hidden_states is None else encoder_hidden_states.shape
+        )
+
+        if attention_mask is not None:
+            attention_mask = attn.prepare_attention_mask(attention_mask, sequence_length, batch_size)
+            # scaled_dot_product_attention expects attention_mask shape to be
+            # (batch, heads, source_length, target_length)
+            attention_mask = attention_mask.view(batch_size, attn.heads, -1, attention_mask.shape[-1])
+
+        if attn.group_norm is not None:
+            hidden_states = attn.group_norm(hidden_states.transpose(1, 2)).transpose(1, 2)
+
+        query = attn.to_q(hidden_states)
+
+        if encoder_hidden_states is None:
+            encoder_hidden_states = hidden_states
+        elif attn.norm_cross:
+            encoder_hidden_states = attn.norm_encoder_hidden_states(encoder_hidden_states)
+
+        key = attn.to_k(encoder_hidden_states)
+        value = attn.to_v(encoder_hidden_states)
+
+        if hasattr(attn, 'feature_gatherer'):
+            attn.feature_gatherer.gather(query, 'q')
+            attn.feature_gatherer.gather(key, 'k')
+            attn.feature_gatherer.gather(value, 'v')
+
+        inner_dim = key.shape[-1]
+        head_dim = inner_dim // attn.heads
+
+        query = query.view(batch_size, -1, attn.heads, head_dim).transpose(1, 2)
+
+        key = key.view(batch_size, -1, attn.heads, head_dim).transpose(1, 2)
+        value = value.view(batch_size, -1, attn.heads, head_dim).transpose(1, 2)
+
+        if attn.norm_q is not None:
+            query = attn.norm_q(query)
+        if attn.norm_k is not None:
+            key = attn.norm_k(key)
+
+        # Apply RoPE if needed
+        if image_rotary_emb is not None:
+            query = apply_rotary_emb(query, image_rotary_emb)
+            if not attn.is_cross_attention:
+                key = apply_rotary_emb(key, image_rotary_emb)
+
+        # the output of sdp = (batch, num_heads, seq_len, head_dim)
+        # TODO: add support for attn.scale when we move to Torch 2.1
+        hidden_states, attention_probs = my_scaled_dot_product_attention(
+            query, key, value, attn_mask=attention_mask, dropout_p=0.0, is_causal=False
+        )
+
+        to_store = attention_probs
+        if self.attnstore:
+            self.attnstore(to_store.mean(1), is_cross, self.place_in_unet)
+        if hasattr(attn, 'feature_gatherer'):
+            attn.feature_gatherer.gather(to_store, 'map')
+
+        hidden_states = hidden_states.transpose(1, 2).reshape(batch_size, -1, attn.heads * head_dim)
+        hidden_states = hidden_states.to(query.dtype)
+
+        # linear proj
+        hidden_states = attn.to_out[0](hidden_states)
+        # dropout
+        hidden_states = attn.to_out[1](hidden_states)
+
+        if input_ndim == 4:
+            hidden_states = hidden_states.transpose(-1, -2).reshape(batch_size, channel, height, width)
+
+        if attn.residual_connection:
+            hidden_states = hidden_states + residual
+
+        hidden_states = hidden_states / attn.rescale_output_factor
+
+        return hidden_states
+
 
 # copied from https://github.com/huggingface/diffusers/blob/v0.14.0/src/diffusers/pipelines/stable_diffusion/pipeline_stable_diffusion_attend_and_excite.py#L646
-def register_attention_store(pipe, img_size, train_unet, processor_only=False):
+def register_attention_store(version, pipe, img_size, train_unet, processor_only=False):
     '''call this when loading pipeline'''
+    if version == 'hunyuan':
+        InjectedProcessor = HunyuanAttnStoreProcessor
+    else:
+        InjectedProcessor = AttnStoreProcessor
+
     if not hasattr(pipe, 'transformer'):
         if not processor_only:
             attention_store = AttentionStore(img_size // 32, img_size // 16, train_unet)
@@ -283,7 +428,7 @@ def register_attention_store(pipe, img_size, train_unet, processor_only=False):
                 continue
 
             cross_att_count += 1
-            attn_procs[name] = AttnStoreProcessor(
+            attn_procs[name] = InjectedProcessor(
                 attnstore=attention_store, place_in_unet=place_in_unet
             )
 
@@ -297,15 +442,26 @@ def register_attention_store(pipe, img_size, train_unet, processor_only=False):
         else:
             attention_store = None
 
-        for i, basic_block in enumerate(pipe.transformer.transformer_blocks):
-            # self-attention
-            basic_block.attn1.processor = AttnStoreProcessor(
-                attnstore=attention_store, place_in_unet='up'
-            )
-            # cross-attention
-            basic_block.attn2.processor = AttnStoreProcessor(
-                attnstore=attention_store, place_in_unet='up'
-            )
+        if not hasattr(pipe.transformer, 'transformer_blocks'):
+            for i, basic_block in enumerate(pipe.transformer.blocks):
+                # self-attention
+                basic_block.attn1.processor = InjectedProcessor(
+                    attnstore=attention_store, place_in_unet='up'
+                )
+                # cross-attention
+                basic_block.attn2.processor = InjectedProcessor(
+                    attnstore=attention_store, place_in_unet='up'
+                )
+        else:
+            for i, basic_block in enumerate(pipe.transformer.transformer_blocks):
+                # self-attention
+                basic_block.attn1.processor = InjectedProcessor(
+                    attnstore=attention_store, place_in_unet='up'
+                )
+                # cross-attention
+                basic_block.attn2.processor = InjectedProcessor(
+                    attnstore=attention_store, place_in_unet='up'
+                )
     return attention_store
 
 

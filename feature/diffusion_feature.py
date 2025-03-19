@@ -64,16 +64,16 @@ class FeatureExtractor(nn.Module):
             control_pipe = None
 
         if attention:
-            attention_store = register_attention_store(pipe, img_size, train_unet)
+            attention_store = register_attention_store(version, pipe, img_size, train_unet)
         else:
             attention_store = None
             # if "map" features are requested, we also replace attention processors
             for layer in self.feature_store.to_store.keys():
                 if 'map' in layer and self.feature_store.to_store[layer]:
-                    register_attention_store(pipe, img_size, train_unet, processor_only=True)
+                    register_attention_store(version, pipe, img_size, train_unet, processor_only=True)
                     break
             if len(self.feature_store.to_store) == 0:
-                register_attention_store(pipe, img_size, train_unet, processor_only=True)
+                register_attention_store(version, pipe, img_size, train_unet, processor_only=True)
 
         # save modules
         self.pipe = pipe
@@ -232,6 +232,17 @@ class FeatureExtractor(nn.Module):
         # others
         use_ddim_inversion=False,
     ):
+        if self.version == 'hunyuan':
+            self.feature_store.reset()
+            self.pipe(
+                image=[i.resize((self.img_size, self.img_size)).convert("RGB") for i in image],
+                prompt=prompts,
+                strength=t/1000,
+                guidance_scale=1,
+            )
+            return self.feature_store.stored_feats
+
+
         self.feature_store.reset()
 
         if use_control and self.control_pipe:
