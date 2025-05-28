@@ -401,11 +401,139 @@ class HunyuanAttnStoreProcessor:
         return hidden_states
 
 
+class FluxAttnStoreProcessor:
+    '''a custom attention processor, replacing the default one in the pipeline,
+    so that we can store the inner attention maps during forward call'''
+    def __init__(self, attnstore, place_in_unet):
+        super().__init__()
+        self.attnstore = attnstore
+        self.place_in_unet = place_in_unet
+
+    # but the call func is copied from attention_processor.py's AttnProcessor
+    # and it's suggested you update it to your diffusers version accordingly
+    # there are two modifications and they are specially marked with "MODIFY"
+    def __call__(
+        self,
+        attn: Attention,
+        hidden_states: torch.FloatTensor,
+        encoder_hidden_states: torch.FloatTensor = None,
+        attention_mask: Optional[torch.FloatTensor] = None,
+        image_rotary_emb: Optional[torch.Tensor] = None,
+    ) -> torch.FloatTensor:
+        batch_size, _, _ = hidden_states.shape if encoder_hidden_states is None else encoder_hidden_states.shape
+
+        # `sample` projections.
+        query = attn.to_q(hidden_states)
+        key = attn.to_k(hidden_states)
+        value = attn.to_v(hidden_states)
+        if hasattr(attn, 'feature_gatherer'):
+            if encoder_hidden_states is not None:
+                attn.feature_gatherer.gather(query, 'q')
+                attn.feature_gatherer.gather(key, 'k')
+                attn.feature_gatherer.gather(value, 'v')
+            else:
+                # batch x text_len+img_len x dim
+                attn.feature_gatherer.gather(query[:,attn.text_len:,:], 'q')
+                attn.feature_gatherer.gather(key[:,attn.text_len:,:], 'k')
+                attn.feature_gatherer.gather(value[:,attn.text_len:,:], 'v')
+
+        inner_dim = key.shape[-1]
+        head_dim = inner_dim // attn.heads
+
+        query = query.view(batch_size, -1, attn.heads, head_dim).transpose(1, 2)
+        key = key.view(batch_size, -1, attn.heads, head_dim).transpose(1, 2)
+        value = value.view(batch_size, -1, attn.heads, head_dim).transpose(1, 2)
+
+        if attn.norm_q is not None:
+            query = attn.norm_q(query)
+        if attn.norm_k is not None:
+            key = attn.norm_k(key)
+
+        # the attention in FluxSingleTransformerBlock does not use `encoder_hidden_states`
+        if encoder_hidden_states is not None:
+            # `context` projections.
+            encoder_hidden_states_query_proj = attn.add_q_proj(encoder_hidden_states)
+            encoder_hidden_states_key_proj = attn.add_k_proj(encoder_hidden_states)
+            encoder_hidden_states_value_proj = attn.add_v_proj(encoder_hidden_states)
+
+            encoder_hidden_states_query_proj = encoder_hidden_states_query_proj.view(
+                batch_size, -1, attn.heads, head_dim
+            ).transpose(1, 2)
+            encoder_hidden_states_key_proj = encoder_hidden_states_key_proj.view(
+                batch_size, -1, attn.heads, head_dim
+            ).transpose(1, 2)
+            encoder_hidden_states_value_proj = encoder_hidden_states_value_proj.view(
+                batch_size, -1, attn.heads, head_dim
+            ).transpose(1, 2)
+
+            if attn.norm_added_q is not None:
+                encoder_hidden_states_query_proj = attn.norm_added_q(encoder_hidden_states_query_proj)
+            if attn.norm_added_k is not None:
+                encoder_hidden_states_key_proj = attn.norm_added_k(encoder_hidden_states_key_proj)
+
+            # attention
+            if hasattr(attn, 'feature_gatherer'):
+                text_len = encoder_hidden_states_query_proj.shape[2]
+                img_len = query.shape[2]
+            query = torch.cat([encoder_hidden_states_query_proj, query], dim=2)
+            key = torch.cat([encoder_hidden_states_key_proj, key], dim=2)
+            value = torch.cat([encoder_hidden_states_value_proj, value], dim=2)
+        if hasattr(attn, 'feature_gatherer') and encoder_hidden_states is None:
+            text_len = attn.text_len
+
+        if image_rotary_emb is not None:
+            from diffusers.models.embeddings import apply_rotary_emb
+
+            query = apply_rotary_emb(query, image_rotary_emb)
+            key = apply_rotary_emb(key, image_rotary_emb)
+
+        hidden_states, attention_probs = my_scaled_dot_product_attention(
+            query, key, value, attn_mask=attention_mask, dropout_p=0.0, is_causal=False
+        )
+
+        to_store = attention_probs  # batch x head x query x key
+        cross_attn = to_store[:,:,text_len:,:text_len]
+        self_attn = to_store[:,:,text_len:,text_len:]
+        if self.attnstore:
+            self.attnstore(cross_attn.mean(1), True, self.place_in_unet)
+            self.attnstore(self_attn.mean(1), False, self.place_in_unet)
+        if hasattr(attn, 'feature_gatherer'):
+            attn.feature_gatherer.gather(cross_attn, 'cross-map')
+            attn.feature_gatherer.gather(self_attn, 'self-map')
+
+        hidden_states = hidden_states.transpose(1, 2).reshape(batch_size, -1, attn.heads * head_dim)
+        hidden_states = hidden_states.to(query.dtype)
+
+        if encoder_hidden_states is not None:
+            encoder_hidden_states, hidden_states = (
+                hidden_states[:, : encoder_hidden_states.shape[1]],
+                hidden_states[:, encoder_hidden_states.shape[1] :],
+            )
+
+            # linear proj
+            hidden_states = attn.to_out[0](hidden_states)
+            # dropout
+            hidden_states = attn.to_out[1](hidden_states)
+
+            encoder_hidden_states = attn.to_add_out(encoder_hidden_states)
+
+            if hasattr(attn, 'feature_gatherer'):
+                attn.feature_gatherer.gather(hidden_states, 'attn-out')
+
+            return hidden_states, encoder_hidden_states
+        else:
+            if hasattr(attn, 'feature_gatherer'):
+                attn.feature_gatherer.gather(hidden_states[:,text_len:,:], 'attn-out')
+            return hidden_states
+
+
 # copied from https://github.com/huggingface/diffusers/blob/v0.14.0/src/diffusers/pipelines/stable_diffusion/pipeline_stable_diffusion_attend_and_excite.py#L646
 def register_attention_store(version, pipe, img_size, train_unet, processor_only=False):
     '''call this when loading pipeline'''
     if version == 'hunyuan':
         InjectedProcessor = HunyuanAttnStoreProcessor
+    elif version == 'flux':
+        InjectedProcessor = FluxAttnStoreProcessor
     else:
         InjectedProcessor = AttnStoreProcessor
 
@@ -454,14 +582,24 @@ def register_attention_store(version, pipe, img_size, train_unet, processor_only
                 )
         else:
             for i, basic_block in enumerate(pipe.transformer.transformer_blocks):
-                # self-attention
-                basic_block.attn1.processor = InjectedProcessor(
-                    attnstore=attention_store, place_in_unet='up'
-                )
-                # cross-attention
-                basic_block.attn2.processor = InjectedProcessor(
-                    attnstore=attention_store, place_in_unet='up'
-                )
+                if hasattr(basic_block, 'attn1'):
+                    # self-attention
+                    basic_block.attn1.processor = InjectedProcessor(
+                        attnstore=attention_store, place_in_unet='up'
+                    )
+                    # cross-attention
+                    basic_block.attn2.processor = InjectedProcessor(
+                        attnstore=attention_store, place_in_unet='up'
+                    )
+                else:
+                    basic_block.attn.processor = InjectedProcessor(
+                        attnstore=attention_store, place_in_unet='up'
+                    )
+            if hasattr(pipe.transformer, 'single_transformer_blocks'):
+                for i, basic_block in enumerate(pipe.transformer.single_transformer_blocks):
+                    basic_block.attn.processor = InjectedProcessor(
+                        attnstore=attention_store, place_in_unet='up'
+                    )
     return attention_store
 
 

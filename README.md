@@ -1,6 +1,12 @@
 # Generic Diffusion Feature
 We want this to be **both** the official implementation of NeurIPS'24 Spotlight paper [Not All Diffusion Model Activations Have Been Evaluated as Discriminative Features](https://arxiv.org/abs/2410.03558) **and** a generic codebase for all who are interested in diffusion feature.
 
+## News
+- 2025.5.28
+    - Now we support newer models: PixArt-Alpha / PixArt-Sigma / Flux. (Some other models are integrated, but not fully tested yet.) See `feature/components/models.py` for a full list of supported models.
+    - To use the new version, you also need to update your environment to newer 🤗 Diffusers build.
+    - The new models make my codes uglier, so I'm considering an overhaul and restructure, but it may not happen very soon.
+
 ## Why you might be interested in this work
 Diffusion feature is a quite popular way to utilize **generative** diffusion models for **discrimination**.
 It's very simple: just extract some internal activations from a diffusion model, and then use these 2D features to replace image inputs of any discriminative model.  
@@ -45,12 +51,12 @@ conda install nvidia/label/cuda-11.8.0::libcusparse
 conda install nvidia/label/cuda-11.8.0::libcublas
 
 # install pytorch
-pip3 install torch==2.2.0 torchvision==0.17.0 torchaudio==2.2.0 --index-url https://download.pytorch.org/whl/cu118
+pip3 install torch==2.6.0 torchvision==0.21.0 torchaudio==2.6.0 --index-url https://download.pytorch.org/whl/cu118
 
 # install other packages
-pip3 install diffusers["torch"]==0.29.2 transformers controlnet_aux
+pip3 install diffusers["torch"]==0.32.2 transformers==4.49.0 controlnet_aux bitsandbytes==0.45.3
 pip3 install tqdm tensorboard flake8 ipykernel pytest seaborn sentencepiece beautifulsoup4
-pip3 install xformers==0.0.24+cu118 --index-url https://download.pytorch.org/whl/cu118  # reduce memory usage
+pip3 install xformers==0.0.29.post2 --index-url https://download.pytorch.org/whl/cu118  # reduce memory usage
 pip3 install accelerate ipdb pytest-env wandb
 pip3 install invisible-watermark>=0.2.0  # remove >=0.2.0 if pip can't find anything
 pip3 install blobfile

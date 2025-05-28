@@ -51,11 +51,12 @@ class FeatureExtractor(nn.Module):
                 if offline_lora_filename:
                     pipe.load_lora_weights(offline_lora, weight_name=offline_lora_filename)
                 # else: TODO
-            pipe = pipe.to(device)
+            if not version in ['flux']:
+                pipe = pipe.to(device)
         # torch.backends.cudnn.benchmark = True
 
         # customize the model
-        self.feature_store = prepare_feature_extractor(pipe, layer, feature_resize, train_unet)
+        self.feature_store = prepare_feature_extractor(version, pipe, layer, feature_resize, train_unet)
         self.store_vae_output = 'vae-out' in self.feature_store.to_store and self.feature_store.to_store['vae-out']
 
         if control:
@@ -233,6 +234,16 @@ class FeatureExtractor(nn.Module):
         use_ddim_inversion=False,
     ):
         if self.version == 'hunyuan':
+            self.feature_store.reset()
+            self.pipe(
+                image=[i.resize((self.img_size, self.img_size)).convert("RGB") for i in image],
+                prompt=prompts,
+                strength=t/1000,
+                guidance_scale=1,
+            )
+            return self.feature_store.stored_feats
+
+        elif self.version == 'flux':
             self.feature_store.reset()
             self.pipe(
                 image=[i.resize((self.img_size, self.img_size)).convert("RGB") for i in image],

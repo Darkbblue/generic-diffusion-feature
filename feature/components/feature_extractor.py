@@ -1,6 +1,6 @@
 import math
 import json
-# import torch
+import torch
 from einops import rearrange
 import torch.nn.functional as F
 import torchvision.transforms.functional as TF
@@ -55,6 +55,10 @@ class FeatureStore:
             # normalize
             feat = TF.normalize(feat, mean=0, std=1)
 
+            # dtype and device
+            if not self.train_unet:
+                feat = feat.to(torch.float16).to('cuda')
+
             # add to store
             if not self.train_unet:
                 feat = feat.detach()
@@ -85,11 +89,38 @@ class FeatureGatherer:
         self.feature_store.store(feat, '-'.join([self.module_id, feat_id]))
 
 
-def prepare_feature_extractor(pipe, config, resize_ratio, train_unet):
+def prepare_feature_extractor(version, pipe, config, resize_ratio, train_unet):
     if isinstance(config, str):
         with open(config, 'r') as f:
             config = json.load(f)
     feature_store = FeatureStore(config, resize_ratio, train_unet)
+
+    if version == 'flux':
+        pipe.transformer.feature_gatherer = FeatureGatherer('vit', feature_store)
+        for i, basic_block in enumerate(pipe.transformer.transformer_blocks):
+            # basic block
+            block_id = '-'.join(['vit', f'block{i}'])
+            # print('\t', block_id)
+            basic_block.feature_gatherer = FeatureGatherer(block_id, feature_store)
+            # attention
+            block_id = '-'.join(['vit', f'block{i}'])
+            # print('\t', block_id)
+            basic_block.attn.feature_gatherer = FeatureGatherer(block_id, feature_store)
+            # ffn
+            block_id = '-'.join(['vit', f'block{i}', 'ffn'])
+            # print('\t', block_id)
+            basic_block.ff.feature_gatherer = FeatureGatherer(block_id, feature_store)
+        for basic_block in pipe.transformer.single_transformer_blocks:
+            i += 1
+            # basic block
+            block_id = '-'.join(['vit', f'block{i}'])
+            # print('\t', block_id)
+            basic_block.feature_gatherer = FeatureGatherer(block_id, feature_store)
+            # attention
+            block_id = '-'.join(['vit', f'block{i}'])
+            # print('\t', block_id)
+            basic_block.attn.feature_gatherer = FeatureGatherer(block_id, feature_store)
+        return feature_store
 
     if not hasattr(pipe, 'transformer'):
         pipe.unet.feature_gatherer = FeatureGatherer('unet', feature_store)

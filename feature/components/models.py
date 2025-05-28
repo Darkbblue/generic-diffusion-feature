@@ -3,7 +3,8 @@ import torch
 import requests
 from diffusers import StableDiffusionImg2ImgPipeline, StableDiffusionXLImg2ImgPipeline, EulerDiscreteScheduler
 from diffusers import PixArtSigmaPipeline, PixArtAlphaPipeline, IFImg2ImgPipeline
-from diffusers import HunyuanDiTPipeline
+from diffusers import HunyuanDiTPipeline, FluxImg2ImgPipeline
+from transformers import T5EncoderModel, BitsAndBytesConfig
 
 
 def get_diffusion_model(version, dtype, offline_lora, offline_lora_filename):
@@ -76,7 +77,7 @@ def get_diffusion_model(version, dtype, offline_lora, offline_lora_filename):
         while not success:
             try:
                 pipe = PixArtSigmaPipeline.from_pretrained(
-                    model_id, torch_dtype=dtype, variant="fp16", use_safetensors=True,
+                    model_id, torch_dtype=dtype, use_safetensors=True,
                     requires_safety_checker=False
                 )
                 pipe.unet = pipe.transformer
@@ -92,7 +93,7 @@ def get_diffusion_model(version, dtype, offline_lora, offline_lora_filename):
         while not success:
             try:
                 pipe = PixArtSigmaPipeline.from_pretrained(
-                    model_id, torch_dtype=dtype, variant="fp16", use_safetensors=True,
+                    model_id, torch_dtype=dtype, use_safetensors=True,
                     requires_safety_checker=False
                 )
                 pipe.unet = pipe.transformer
@@ -141,6 +142,29 @@ def get_diffusion_model(version, dtype, offline_lora, offline_lora_filename):
                 pipe = HunyuanDiTPipeline.from_pretrained(
                     model_id, torch_dtype=dtype, variant="fp16", use_safetensors=True,
                     requires_safety_checker=False
+                )
+                pipe.unet = pipe.transformer
+                success = True
+            except requests.exceptions.ConnectionError:
+                print('retry connection')
+    elif version == 'flux':
+        model_id = 'black-forest-labs/FLUX.1-dev'
+        # model_id = '/data/benyuan/diffusion-feature/models/Flux.1-dev'
+        if offline_lora and not offline_lora_filename:
+            model_id = offline_lora
+        success = False
+        while not success:
+            try:
+                te2 = T5EncoderModel.from_pretrained(
+                    model_id,
+                    subfolder='text_encoder_2',
+                    quantization_config=BitsAndBytesConfig(load_in_8bit=True),
+                    torch_dtype=torch.bfloat16,
+                )
+                pipe = FluxImg2ImgPipeline.from_pretrained(
+                    model_id, text_encoder_2=te2, torch_dtype=torch.bfloat16,
+                    use_safetensors=True, requires_safety_checker=False,
+                    device_map="balanced", max_memory={0:"11GiB", 'cpu':"20GiB"}
                 )
                 pipe.unet = pipe.transformer
                 success = True
