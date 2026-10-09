@@ -3,7 +3,8 @@ We want this to be **both** the official implementation of NeurIPS'24 Spotlight 
 
 ## News
 - 2026.10.9
-    - Our new paper is accepted by NeurIPS'26. The update to support this new work is now released in this repo.
+    - Our [new paper](https://github.com/Darkbblue/dit-lsc) is accepted by NeurIPS'26. The update to support this new work is now released in this repo.
+    - We've got [another paper](https://github.com/Darkbblue/dit-compare) open-sourced on ArXiV. This update also supports that repository.
 - 2025.5.28
     - Now we support newer models: PixArt-Alpha / PixArt-Sigma / Flux. (Some other models are integrated, but not fully tested yet.) See `feature/components/models.py` for a full list of supported models.
     - To use the new version, you also need to update your environment to newer 🤗 Diffusers build.
