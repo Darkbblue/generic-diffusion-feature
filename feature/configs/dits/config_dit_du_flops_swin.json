@@ -1,0 +1,12 @@
+{
+    "feature_len": 3456,
+    "layer": {
+        "vit-block19-out": true,
+        "vit-block20-out": true,
+        "vit-block21-out": true
+    },
+    "version": "dit-du-flops-swin w/ lsc",
+    "attention": null,
+    "img_size": 256,
+    "t": 50
+}

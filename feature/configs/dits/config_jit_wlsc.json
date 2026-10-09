@@ -1,0 +1,12 @@
+{
+    "feature_len": 3072,
+    "layer": {
+        "vit-block19-out": true,
+        "vit-block20-out": true,
+        "vit-block21-out": true
+    },
+    "version": "jit w/ LSC dense",
+    "attention": null,
+    "img_size": 256,
+    "t": 100
+}

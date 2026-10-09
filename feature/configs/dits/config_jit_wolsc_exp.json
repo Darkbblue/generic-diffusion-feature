@@ -1,0 +1,33 @@
+{
+    "feature_len": 1024,
+    "layer": {
+        "vit-block0-out": true,
+        "vit-block1-out": true,
+        "vit-block2-out": true,
+        "vit-block3-out": true,
+        "vit-block4-out": true,
+        "vit-block5-out": true,
+        "vit-block6-out": true,
+        "vit-block7-out": true,
+        "vit-block8-out": true,
+        "vit-block9-out": true,
+        "vit-block10-out": true,
+        "vit-block11-out": true,
+        "vit-block12-out": true,
+        "vit-block13-out": true,
+        "vit-block14-out": true,
+        "vit-block15-out": true,
+        "vit-block16-out": true,
+        "vit-block17-out": true,
+        "vit-block18-out": true,
+        "vit-block19-out": true,
+        "vit-block20-out": true,
+        "vit-block21-out": true,
+        "vit-block22-out": true,
+        "vit-block23-out": true
+    },
+    "version": "jit",
+    "attention": null,
+    "img_size": 256,
+    "t": 100
+}

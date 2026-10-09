@@ -1,0 +1,11 @@
+{
+    "feature_len": 1152,
+    "layer": {
+        "vit-block0-out": true,
+        "pipe-pred": true
+    },
+    "version": "dit-compare vp-eps",
+    "attention": null,
+    "img_size": 256,
+    "t": 50
+}

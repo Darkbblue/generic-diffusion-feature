@@ -1,0 +1,12 @@
+{
+    "feature_len": 4224,
+    "layer": {
+        "vit-block27-cross-q-normed": true,
+        "vit-block27-self-q": true,
+        "vit-block26-norm3-out": true
+    },
+    "version": "hunyuan",
+    "attention": null,
+    "img_size": 1024,
+    "t": 100
+}

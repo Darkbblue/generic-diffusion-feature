@@ -2,6 +2,8 @@
 We want this to be **both** the official implementation of NeurIPS'24 Spotlight paper [Not All Diffusion Model Activations Have Been Evaluated as Discriminative Features](https://arxiv.org/abs/2410.03558) **and** a generic codebase for all who are interested in diffusion feature.
 
 ## News
+- 2026.10.9
+    - Our new paper is accepted by NeurIPS'26. The update to support this new work is now released in this repo.
 - 2025.5.28
     - Now we support newer models: PixArt-Alpha / PixArt-Sigma / Flux. (Some other models are integrated, but not fully tested yet.) See `feature/components/models.py` for a full list of supported models.
     - To use the new version, you also need to update your environment to newer 🤗 Diffusers build.
@@ -54,18 +56,12 @@ conda install nvidia/label/cuda-11.8.0::libcublas
 pip3 install torch==2.6.0 torchvision==0.21.0 torchaudio==2.6.0 --index-url https://download.pytorch.org/whl/cu118
 
 # install other packages
-pip3 install diffusers["torch"]==0.32.2 transformers==4.49.0 controlnet_aux bitsandbytes==0.45.3
-pip3 install tqdm tensorboard flake8 ipykernel pytest seaborn sentencepiece beautifulsoup4
-pip3 install xformers==0.0.29.post2 --index-url https://download.pytorch.org/whl/cu118  # reduce memory usage
-pip3 install accelerate ipdb pytest-env wandb
-pip3 install invisible-watermark>=0.2.0  # remove >=0.2.0 if pip can't find anything
-pip3 install blobfile
-pip3 install opencv-python  # maybe already installed in previous steps
-pip3 install omegaconf  # this will not be needed once diffusers fully support loading kohya lora weights
-pip3 install scikit-learn==1.0.2
+pip3 install -r partial_requirements.txt
 ```
 
-To run segmentation tasks, you also need to install mmseg. We recommend first trying the official guide at https://github.com/open-mmlab/mmsegmentation/blob/main/docs/en/get_started.md#installation. If you have trouble connecting to mim server, try `pip3 install mmcv==2.1.0 mmsegmentation==1.2.2 ftfy` instead. However, this requires compiling mmseg from sources, which is slow and potential to encounter issues.  
+Manually download and install [LightGlue](https://github.com/cvg/lightglue) according to their instructions.  
+
+To run segmentation tasks, you also need to install mmseg. We recommend first trying the official guide at https://github.com/open-mmlab/mmsegmentation/blob/main/docs/en/get_started.md#installation. If you have trouble connecting to mim server, try `pip3 install mmcv==2.1.0 mmsegmentation==1.2.2 ftfy` instead. However, this requires compiling mmseg from sources, which is slow and potential to encounter issues. We really want to complain about mmseg. If you really struggle with this package, skip segmentation tasks.  
 
 **Step 2**: overwrite some 🤗 Diffusers files with the files in `feature/diffusers`. You can find the installed lib files at `anaconda3/envs/generic-diffusion-feature/lib/python3.9/site-packages/diffusers`.  
 

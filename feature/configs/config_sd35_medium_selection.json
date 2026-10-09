@@ -1,0 +1,14 @@
+{
+    "feature_len": 4608,
+    "layer": {
+        "vit-block9-attn1-out": true,
+        "vit-block9-norm2-out": true,
+        "vit-block11-attn1-q": true,
+        "pipe-gt": true,
+        "pipe-pred": true
+    },
+    "version": "3.5-medium",
+    "attention": null,
+    "img_size": 1024,
+    "t": 300
+}

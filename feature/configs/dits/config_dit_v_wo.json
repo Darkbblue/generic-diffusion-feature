@@ -1,0 +1,12 @@
+{
+    "feature_len": 3456,
+    "layer": {
+        "vit-block20-out": true,
+        "vit-block21-out": true,
+        "vit-block22-out": true
+    },
+    "version": "dit-v w/o lsc",
+    "attention": null,
+    "img_size": 256,
+    "t": 50
+}

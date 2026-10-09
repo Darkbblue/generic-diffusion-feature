@@ -1,0 +1,12 @@
+{
+    "feature_len": 3456,
+    "layer": {
+        "vit-block13-out": true,
+        "vit-block14-out": true,
+        "vit-block15-out": true
+    },
+    "version": "uvit",
+    "attention": null,
+    "img_size": 256,
+    "t": 50
+}

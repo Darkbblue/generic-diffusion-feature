@@ -1,0 +1,12 @@
+{
+    "feature_len": 9216,
+    "layer": {
+        "vit-block27-attn-out": true,
+        "vit-block29-k": true,
+        "vit-block25-attn-out": true
+    },
+    "version": "flux",
+    "attention": null,
+    "img_size": 512,
+    "t": 200
+}

@@ -1,0 +1,12 @@
+{
+    "feature_len": 3456,
+    "layer": {
+        "vit-block16-out": true,
+        "vit-block17-out": true,
+        "vit-block18-out": true
+    },
+    "version": "dit-du-param-conv w/ lsc",
+    "attention": null,
+    "img_size": 256,
+    "t": 50
+}

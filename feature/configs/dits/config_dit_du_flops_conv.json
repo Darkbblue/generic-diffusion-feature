@@ -1,0 +1,12 @@
+{
+    "feature_len": 3456,
+    "layer": {
+        "vit-block24-out": true,
+        "vit-block25-out": true,
+        "vit-block26-out": true
+    },
+    "version": "dit-du-flops-conv w/ lsc",
+    "attention": null,
+    "img_size": 256,
+    "t": 50
+}

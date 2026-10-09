@@ -1,0 +1,12 @@
+{
+    "feature_len": 3456,
+    "layer": {
+        "vit-block13-cross-q": true,
+        "vit-block13-self-out": true,
+        "vit-block14-norm2-out": true
+    },
+    "version": "pixart-sigma",
+    "attention": null,
+    "img_size": 1024,
+    "t": 100
+}

@@ -1,0 +1,12 @@
+{
+    "feature_len": 3456,
+    "layer": {
+        "vit-block14-out": true,
+        "vit-block15-out": true,
+        "vit-block16-out": true
+    },
+    "version": "dit w/ lsc external-x-and-noise",
+    "attention": null,
+    "img_size": 256,
+    "t": 50
+}
